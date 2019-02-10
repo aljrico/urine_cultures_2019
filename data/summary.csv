@@ -1,0 +1,119 @@
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,DATOS GENERALES,,,OTOÑO ,INVIERNO,PRIMAVERA,VERANO
+,GÉNERO,GRAM,ESPECIE AISLADA,Nº POSITIVOS,PERROS,GATOS,Nº POSITIVOS,Nº POSITIVOS,Nº POSITIVOS,Nº POSITIVOS
+,Achromobacter,Negativo ,Achromobacter denitrificans,1,0,1,0,0,1,0
+,,,Achromobacter xylosoxidans,1,0,1,0,0,1,0
+,Acinetobacter,Negativo ,Acinetobacter spp,2,1,1,0,0,1,1
+,,,Acinetobacter Baumannii,7,6,1,0,1,1,5
+,,,Acinetobacter Lwoffii,13,11,2,4,2,1,6
+,Aerococcus,Positivo,Aerococcus spp,3,2,1,1,0,1,1
+,,,Aerococcus viridans,5,4,1,3,1,1,0
+,Alcaligenes,Negativo ,Alcaligenes faecalis,2,2,0,1,0,1,0
+,Bacillus ,Positivo,Bacillus spp,5,4,1,1,1,0,3
+,Burkholderia ,Negativo ,Burkholderia spp.,1,1,0,0,0,1,0
+,,,Burkholderia cepacia,10,5,5,3,3,1,3
+,Candida,HONGO,Candida spp,11,6,5,1,2,4,4
+,,,Candida guillermondii,1,1,0,0,0,0,1
+,,,Candida lusitaniae,1,1,0,0,0,0,1
+,,,Candida tropicalis,1,1,0,0,1,0,0
+,Chromobacterium,Negativo ,Chromobacterium violaceum,1,1,0,0,1,0,0
+,Citrobacter,Negativo ,Citrobacter braakii,1,1,0,0,0,0,1
+,,,Citrobacter freundii,2,2,0,2,0,0,0
+,,,Citrobacter koseri,12,10,2,5,3,3,1
+,Clostridium,Positivo,Clostridium spp.,1,0,1,0,0,0,1
+,Corynebacterium,Positivo,Corynebacterium spp.,2,2,0,2,0,0,0
+,,,Corynebacterium jeikeium,1,1,0,1,0,0,0
+,,,Corynebacterium urealyticum,3,3,0,1,0,0,2
+,Cryptococcus,HONGO,Cryptococcus spp.,1,0,1,0,0,1,0
+,Enterobacter,Negativo ,Enterobacter spp.,1,1,0,1,0,0,0
+,,,Enterobacter Aerogenes,14,12,2,5,3,2,4
+,,,Enterobacter Amnigenus,1,1,0,0,1,0,0
+,,,Enterobacter Cloacae,58,37,21,21,10,9,18
+,Enterococcus,Positivo,Enterococcus spp,2,1,1,0,1,1,0
+,,,Enterococcus avium,4,4,0,1,2,1,0
+,,,Enterococcus casseliflavus,10,6,4,2,2,1,5
+,,,Enterococcus durans,8,6,2,3,1,1,3
+,,,Enterococcus faecalis,338,168,170,99,70,67,102
+,,,Enterococcus faecium,68,56,12,13,16,18,21
+,,,Enterococcus gallinarum,19,13,6,7,4,2,6
+,Escherichia ,Negativo ,Escherichia Coli,1710,1333,377,443,442,375,450
+,Fusarium , HONGO,Fusarium spp.,1,0,1,0,0,0,1
+,Klebsiella,Negativo ,Klebsiella oxytoca,15,15,0,4,6,2,3
+,,,Klebsiella pneumoniae,157,135,22,51,39,25,42
+,Kluyvera,Negativo ,Kluyvera intermedia,1,1,0,0,1,0,0
+,Kocuria,Positivo,Kocuria spp,2,1,1,1,0,1,0
+,Lactococcus,Positivo,Lactococcus spp.,1,1,0,0,0,1,0
+,Leclercia,Negativo ,Leclercia spp.,2,2,0,0,0,0,2
+,,,Leclercia adecarboxylata,1,1,0,0,1,0,0
+,Leuconostoc,Positivo,Leuconostoc spp.,1,1,0,1,0,0,0
+,Micrococcus,Positivo,Micrococcus spp,2,2,0,1,0,1,0
+,Morganella,Negativo ,Morganella morganii,2,2,0,1,0,1,0
+,Pandoraea,Negativo ,Pandoraea spp.,1,1,0,0,1,0,0
+,Pantoea,Negativo ,Pantoea spp.,8,6,2,0,1,2,5
+,,,Pantoea agglomerans,6,4,2,0,3,0,3
+,Pasteurella,Negativo ,Pasteurella spp,1,0,1,0,0,1,0
+,,,Pasteurella Canis,2,2,0,1,0,1,0
+,,,Pasteurella Multocida,4,2,2,0,2,1,1
+,,,Pasteurella Pneumotropica,1,0,1,0,1,0,0
+,Penicillium,HONGO,Penicillium spp.,1,1,0,0,0,1,0
+,Plesiomonas,Negativo ,Plesiomonas shigelloides,1,0,1,0,0,0,1
+,Proteus,Negativo ,Proteus mirabilis,418,388,30,116,120,73,109
+,,,Proteus vulgaris,1,1,0,0,0,1,0
+,Providencia,Negativo ,Providencia rettgeri,3,3,0,2,0,0,1
+,,,Providencia stuartii,2,1,1,1,0,0,1
+,Pseudomonas,Negativo ,Pseudomonas spp,2,2,0,0,0,1,1
+,,,Pseudomonas Aeruginosa,139,102,37,45,29,31,34
+,,,Pseudomonas Fluorescens,7,6,1,3,2,1,1
+,,,Pseudomonas Luteola,2,2,0,1,0,1,0
+,,,Pseudomonas Mendocina,1,1,0,0,0,0,1
+,,,Pseudomonas Putida,9,9,0,2,1,1,5
+,Raoultella,Negativo ,Raoultella ornithinolytica,1,1,0,0,0,0,1
+,,,Raoultella planticola,3,3,0,1,1,0,1
+,Serratia,Negativo ,Serratia fonticola,2,0,2,0,1,0,1
+,,,Serratia marcescens,21,15,6,8,2,4,7
+,,,Serratia odorifera,2,2,0,1,0,1,0
+,,,Serratia plymuthica,3,2,1,2,0,1,0
+,Shewanella,Negativo ,Shewanella putrefaciens,1,1,0,1,0,0,0
+,Shigella,Negativo ,Shigella spp.,2,2,0,0,2,0,0
+,Sphingomonas,Negativo ,Sphingomonas paucimobilis,14,11,3,3,3,3,5
+,Staphylococcus,Positivo,Staphylococcus aureus,41,31,10,7,11,11,12
+,,,Staphylococcus auricularis,1,0,1,1,0,0,0
+,,,Staphylococcus capitis,1,0,1,0,1,0,0
+,,,Staphylococcus caprae,1,0,1,0,0,0,0
+,,,Staphylococcus chromogenes,21,5,16,4,4,4,9
+,,,Staphylococcus coagulasa negativa,41,15,26,5,3,30,3
+,,,Staphylococcus cohnii,1,1,0,0,0,0,1
+,,,Staphylococcus epidermidis,7,4,3,1,1,0,5
+,,,Staphylococcus equorum,1,0,1,0,0,1,0
+,,,Staphylococcus haemolyticus,4,3,1,2,0,1,1
+,,,Staphylococcus hominis,6,2,4,1,2,1,2
+,,,Staphylococcus lentus,19,8,11,10,4,2,3
+,,,Staphylococcus lugdunensis,1,1,0,0,0,0,1
+,,,Staphylococcus Pseudintermedius,294,248,46,76,78,56,81
+,,,Staphylococcus saprophyticus,7,5,2,3,1,1,2
+,,,Staphylococcus schleiferi,5,3,2,5,0,0,0
+,,,Staphylococcus sciuri,4,2,2,1,1,0,2
+,,,Staphylococcus simulans,1,0,1,0,0,0,1
+,,,Staphylococcus warneri,4,2,2,2,1,0,1
+,,,Staphylococcus xylosus,7,1,6,2,2,2,1
+,Stenotrophomonas,Negativo ,Stenotrophomonas maltophilia,8,4,4,3,1,3,1
+,Streptococcus,Positivo,Streptococcus dysgalactiae,1,1,0,0,0,0,1
+,,,Streptococcus agalactiae,3,3,0,0,0,0,3
+,,,Streptococcus alfa-hemolítico,4,4,0,1,0,1,2
+,,,Streptococcus anginosus,4,4,0,2,0,0,2
+,,,Streptococcus B-hemolítico ,73,68,5,18,21,18,16
+,,,Streptococcus canis,42,41,1,10,10,14,8
+,,,Streptococcus constellatus,2,2,0,0,1,1,0
+,,,Streptococcus dysgalactiae,28,28,0,7,7,6,8
+,,,Streptococcus equi,1,1,0,0,0,0,1
+,,,Streptococcus grupo viridans,37,27,10,10,10,14,3
+,,,Streptococcus mutans,2,2,0,1,0,0,1
+,,,Streptococcus sanguinis,13,10,3,2,3,4,4
+,Vagococcus,Positivo,Vagococcus spp.,1,1,0,0,0,0,1
+,,,,,,,,,,
+,,,,,,,,,,
+,,,,,,,,,,
+,Nº HONGOS,4,,,,,,,,
+,Nº GÉNEROS BACT.,37,,,,,,,,
+,Nº ESPECIES BACT.,109,,,,,,,,
