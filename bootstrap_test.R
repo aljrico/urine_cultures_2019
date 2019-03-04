@@ -34,29 +34,3 @@ bootstrap_test <- function(x, y, n = 1e3) {
   result <- mean(abs(boot_t) > abs(non_b_statistic))
   result %>% return()
 }
-
-
-bootstrap_test3 <- function(x, y, n = 1e4){
-  x <- x[!is.na(x)]
-  y <- y[!is.na(y)]
-  diffs <- c()
-  for(i in 1:n){
-    xt <- sample(x, replace = TRUE)
-    yt <- sample(y, replace = TRUE)
-    diffs[[i]] <- mean(xt) - mean(yt)
-  }
-  1 - ecdf(diffs)(0)
-}
-
-Boot_fun = function(x, y){
-  
-
-  Boot_x = sample(x, length(x), replace =TRUE)
-  Boot_y = sample(y, length(y), replace = TRUE)
-  mean(Boot_x) - mean(Boot_y)
-} 
-
-Diffs = unlist(replicate(1000, Boot_fun)) 
-
-#95% CI
-quantile(Diffs, probs = c(0.025, 0.975))

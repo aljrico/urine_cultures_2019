@@ -146,8 +146,6 @@ sp_map <- function(level = 2){
 
 mymap <- sp_map(level = 2)
 
-ca_map 
-
 general %>% 
   group_by(province) %>% 
   summarise(n = n(),
@@ -165,9 +163,9 @@ general %>%
 prov_table <- general %>% 
   group_by(province) %>% 
   summarise(n = n(),
-            infected = sum(infected)) %>% 
-  mutate(proportion_infected = infected / n) %>% 
+            infected = sum(infected)) %>%
   mutate(no_infected = n - infected ) %>% 
+  mutate(proportion_infected = infected / n) %>% 
   na.omit()
 
 cas_list <- prov_table$province %>% unique()
@@ -280,43 +278,54 @@ gg2
 
 
 # PROVINCES
-table1 <- general %>% 
+bacteria_province <- general %>% 
   select(species1, province) %>% 
-  table() %>% 
-  as_tibble() %>% 
-  set_names(c('species', 'province', 'n1'))
+    set_names('species', 'province') %>% 
+    rbind(
+      general %>% 
+        select(species2, province) %>% 
+        set_names('species', 'province')
+    ) %>% 
+    rbind(
+      general %>% 
+        select(species3, province) %>% 
+        set_names('species', 'province')
+    ) %>% 
+    table() %>% 
+    as_tibble() %>% 
+    filter(species != 0) %>% 
+    filter(species != '') %>% 
+  group_by(province) %>% 
+  mutate(n = 100 * n / sum(n))
 
-table2 <- general %>% 
-  select(species2, province) %>% 
-  table() %>% 
-  as_tibble() %>% 
-  set_names(c('species', 'province', 'n2'))
+top_species_dog <- bacteris_animal %>% 
+  filter(animal == 1) %>% 
+  group_by(species) %>% 
+  summarise(c = sum(n)) %>% 
+  arrange(-c) %>% 
+  top_n(5, c) %>% 
+  .$species
 
-table3 <- general %>% 
-  select(species3, province) %>% 
-  table() %>% 
-  as_tibble() %>% 
-  set_names(c('species', 'province', 'n3'))
+top_species_cat <- bacteris_animal %>% 
+  filter(animal == 2) %>% 
+  group_by(species) %>% 
+  summarise(c = sum(n)) %>% 
+  arrange(-c) %>% 
+  top_n(5, c) %>% 
+  .$species
+  
 
-bacteria_distribution <- table1 %>% 
-  left_join(table2) %>% 
-  left_join(table3) %>% 
-  mutate(n = n1 + n2 + n3)
-
-bacteria_distribution %>% 
-  filter(n > 0) %>% 
-  filter( species != 0) %>% 
-  mutate(n = ifelse(is.na(n), 0, n)) %>% 
-  select( species, province, n) %>% 
+bacteria_province %>% 
+  filter(species %in% top_species_dog) %>% 
   group_by(province) %>% 
   arrange(-n, .by_group = TRUE) %>% 
   group_by(province) %>% 
-  slice(1) %>% 
+  na.omit() %>% 
   right_join(mymap) %>% 
   ggplot() +
-  geom_polygon(aes( x= long, y = lat, group = group, fill = species))  +
-  scale_fill_hp_d(name = 'Bacteria Species', option = 'ronweasley2') +
-  theme_void()
+  geom_polygon(aes( x= long, y = lat, group = group, alpha = n), fill = hp(10)[[4]])  +
+  theme_void() +
+  facet_wrap(.~species)
   
   
 # CA
@@ -416,7 +425,7 @@ general %>%
 
 
 # Age ---------------------------------------------------------------------
-
+ 
 general %>% 
   group_by(animal, infected, EDAD) %>% 
   summarise(n = n()) %>%
@@ -431,8 +440,15 @@ general %>%
 general %>% 
   filter(!is.na(animal)) %>% 
   ggplot(aes(x = infected, y = EDAD, fill = infected)) +
-  geom_boxplot() +
-  facet_wrap(.~animal)
+  geom_boxplot(alpha = 1, size = 0.25) +
+  facet_wrap(.~animal) +
+  scale_fill_hp_d(option = 'sprout', name = 'Infected?', labels = c('No', 'Yes')) +
+  theme_minimal() +
+  xlab('Infected?') +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  ylab('Age')
 
 # ANIMAL 1
 x <- general %>% filter(animal == 1) %>%  filter(infected) %>% .$EDAD
@@ -454,6 +470,7 @@ bootstrap_test3(y,x)
 # N Species ---------------------------------------------------------------
 
 general %>% 
+  filter(animal == 1) %>% 
   group_by(n_species) %>% 
   summarise(n = n()) %>% 
   mutate(n = 100 * n/sum(n)) %>% 
@@ -463,4 +480,19 @@ general %>%
   geom_label(aes(label = n %>% round(2) %>% paste0(' %'))) +
   xlab('N Species') +
   ylab('(%)') +
-  theme_minimal()
+  theme_minimal() +
+  ggtitle('Dog')
+
+general %>% 
+  filter(animal == 2) %>% 
+  group_by(n_species) %>% 
+  summarise(n = n()) %>% 
+  mutate(n = 100 * n/sum(n)) %>% 
+  na.omit() %>% 
+  ggplot(aes(x = n_species, y = n)) +
+  geom_col(fill = hp(10)[[7]], colour = 'black', size= 0.15) +
+  geom_label(aes(label = n %>% round(2) %>% paste0(' %'))) +
+  xlab('N Species') +
+  ylab('(%)') +
+  theme_minimal() +
+  ggtitle('Cat')
