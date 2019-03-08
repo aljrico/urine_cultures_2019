@@ -6,7 +6,7 @@ output:
   pdf_document: default
 ---
 
-```{r, echo = FALSE, warning = FALSE}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 library(tidyverse)
 library(data.table)
 library(harrypotter)
@@ -39,7 +39,7 @@ simpleCap <- function(x) {
 }
 ```
 
-```{r, echo = FALSE, warning = FALSE}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 
 not_all_na <- function(x)!all(is.na(x))
 
@@ -195,7 +195,11 @@ prov_table <- general %>%
   na.omit()
 
 prov_table %>% kable()
+```
 
+## Map
+
+```{r echo = FALSE, warning = FALSE, message = FALSE}
 
 sp_map <- function(level = 2){
   spmapesp <- readOGR(paste0('data/gadm36_ESP_shp/gadm36_ESP_', level,'.shp'))
@@ -213,18 +217,134 @@ general %>%
             infected = sum(infected, na.rm = TRUE)) %>% 
   mutate(proportion_infected = infected / n) %>% 
   right_join(mymap) %>% 
-  ggplot() +
-  geom_polygon(aes( x= long, y = lat, group = group, fill = 100 * proportion_infected))  +
-  scale_fill_hp(name = '% Infected', option = 'Mischief') +
+  ggplot(aes(x= long, y = lat, group = group, alpha = proportion_infected)) +
+  geom_polygon(fill = hp(option = 'Gryffindor2', n = 10)[[1]])  +
+  scale_alpha_continuous(range = c(0.25,1)) +
   theme_void()
-
-
 
 ```
 
-## Map
+
+
+```{r echo = FALSE, results = 'asis', warning = FALSE, message = FALSE}
+prov_table %>% 
+  dplyr::select(infected, no_infected) %>% 
+  chisq.test()
+```
+
+Chi-Squared test outputs a p-value below 0.05. Thus it seems reasonable to *negate* that the proportion of infected population is homogeneously distributed across provinces.
+
+# Batceria Species
+
+## Frequency Table
 
 ```{r}
+general %>% 
+  select(species1, animal) %>% 
+  set_names('species', 'animal') %>% 
+  rbind(
+    general %>% 
+      select(species2, animal) %>% 
+      set_names('species', 'animal')
+  ) %>% 
+  rbind(
+    general %>% 
+      select(species3, animal) %>% 
+      set_names('species', 'animal')
+  ) %>% 
+  table() %>% 
+  as_tibble() %>% 
+  filter(species != 0) %>% 
+  filter(species != '') %>%
+  mutate(animal = ifelse(animal == 1, 'Dog', 'Cat')) %>% 
+  dcast(species~animal, value = 'n') %>% 
+  arrange(desc(Cat + Dog)) %>% 
+  mutate(Dog_prop = round(Dog / sum(Dog), 2)) %>% 
+  mutate(Cat_prop = round(Cat / sum(Cat), 2)) %>% 
+  kable()
+```
+
+
+```{r echo = FALSE, warning = FALSE}
+bacteris_animal <- general %>% 
+  select(species1, animal) %>% 
+  set_names('species', 'animal') %>% 
+  rbind(
+    general %>% 
+      select(species2, animal) %>% 
+      set_names('species', 'animal')
+  ) %>% 
+  rbind(
+    general %>% 
+      select(species3, animal) %>% 
+      set_names('species', 'animal')
+  ) %>% 
+  table() %>% 
+  as_tibble() %>% 
+  filter(species != 0) %>% 
+  filter(species != '')
+
+bacteris_animal %>% 
+  filter(n > 0) %>% 
+  group_by(animal) %>% 
+  summarise(n = n()) %>% 
+  mutate(animal = ifelse(animal == 1, 'Dog', 'Cat')) %>% 
+  ggplot(aes(x = animal, y = n, fill = animal)) +
+  geom_col(colour = 'black', size = 0.15) +
+  geom_label(aes(label = n), fill = 'white') +
+  xlab('Animal') +
+  ylab('N') +
+  scale_fill_hp_d(guide = FALSE, begin = 0.3, end = 0.7) +
+  ggtitle('Number of Different Bacteria Species per Animal') +
+  theme_bw() +
+  theme(legend.position = 'none')
+
+gg1 <- bacteris_animal %>% 
+  filter(animal == 1) %>% 
+  group_by(species) %>% 
+  summarise(n = sum(n)) %>% 
+  mutate(n =100 * n / sum(n)) %>% 
+  ungroup() %>% 
+  top_n(10, n) %>% 
+  ggplot(aes(x = reorder(species, n), y = n, fill = n)) +
+  geom_col() +
+  geom_label_repel(aes(label = (n) %>% round(2) %>% paste0('%')), 
+             fill = 'white',
+             size = 1.5,
+             direction = 'x') +
+  scale_fill_hp(option = 'HermioneGranger', guide = FALSE) +
+  ggtitle('Most Common Bacteria Species in Dogs') +
+  coord_flip() +
+  xlab('') +
+  ylab('(%)') +
+  theme_minimal()
+  
+gg2 <- bacteris_animal %>% 
+  filter(animal == 2) %>% 
+  group_by(species) %>% 
+  summarise(n = sum(n)) %>% 
+  mutate(n =100 * n / sum(n)) %>% 
+    ungroup() %>% 
+  top_n(10, n) %>% 
+  ggplot(aes(x = reorder(species, n), y = n, fill = n)) +
+  geom_col() +
+  geom_label_repel(aes(label = (n) %>% round(2) %>% paste0('%')), 
+             fill = 'white',
+             size = 1.5,
+             direction = 'x') +
+  scale_fill_hp(guide = FALSE, begin = 0.2, end = 0.6, direction = -1) +
+  ggtitle('Most Common Bacteria Species in Cats') +
+  coord_flip() +
+  xlab('') +
+  ylab('(%)') +
+  theme_minimal()
+
+gg1
+gg2
+```
+
+## Most Common Bacteria Distribution 
+```{r echo = FALSE, warning = FALSE, message = FALSE}
 bacteris_animal <- general %>% 
   select(species1, animal) %>% 
   set_names('species', 'animal') %>% 
@@ -281,103 +401,34 @@ top_species_cat <- bacteris_animal %>%
   
 
 bacteria_province %>% 
+  filter(species %in% top_species_cat) %>% 
+  group_by(province) %>% 
+  arrange(-n, .by_group = TRUE) %>% 
+  group_by(province) %>% 
+  na.omit() %>% 
+  right_join(mymap) %>% 
+  na.omit() %>% 
+  ggplot() +
+  geom_polygon(aes( x= long, y = lat, group = group, alpha = n), fill = hp(10)[[4]])  +
+  theme_void() +
+  facet_wrap(.~species) +
+  ggtitle('Most Common Bacteria Distribution on Cats')
+
+bacteria_province %>% 
   filter(species %in% top_species_dog) %>% 
   group_by(province) %>% 
   arrange(-n, .by_group = TRUE) %>% 
   group_by(province) %>% 
   na.omit() %>% 
   right_join(mymap) %>% 
+  na.omit() %>% 
   ggplot() +
-  geom_polygon(aes( x= long, y = lat, group = group, alpha = n), fill = hp(10)[[4]])  +
+  geom_polygon(aes( x= long, y = lat, group = group, alpha = n), fill = hp(10, option = 'NewtScamander')[[8]])  +
   theme_void() +
-  facet_wrap(.~species)
+  facet_wrap(.~species) +
+    ggtitle('Most Common Bacteria Distribution on Dogs')
 ```
 
-
-
-```{r echo = FALSE, results = 'asis', warning = FALSE, message = FALSE}
-prov_table %>% 
-  dplyr::select(infected, no_infected) %>% 
-  chisq.test()
-```
-
-Chi-Squared test outputs a p-value below 0.05. Thus it seems reasonable to *negate* that the proportion of infected population is homogeneously distributed across provinces.
-
-## Batceria Species Distribution
-
-```{r echo = FALSE, warning = FALSE}
-bacteris_animal <- general %>% 
-  select(species1, animal) %>% 
-  set_names('species', 'animal') %>% 
-  rbind(
-    general %>% 
-      select(species2, animal) %>% 
-      set_names('species', 'animal')
-  ) %>% 
-  rbind(
-    general %>% 
-      select(species3, animal) %>% 
-      set_names('species', 'animal')
-  ) %>% 
-  table() %>% 
-  as_tibble() %>% 
-  filter(species != 0) %>% 
-  filter(species != '')
-
-bacteris_animal %>% 
-  filter(n > 0) %>% 
-  group_by(animal) %>% 
-  summarise(n = n()) %>% 
-  mutate(animal = ifelse(animal == 1, 'Dog', 'Cat')) %>% 
-  ggplot(aes(x = animal, y = n, fill = animal)) +
-  geom_col(colour = 'black', size = 0.15) +
-  geom_label(aes(label = n), fill = 'white') +
-  xlab('Animal') +
-  ylab('N') +
-  scale_fill_hp_d(guide = FALSE, begin = 0.3, end = 0.7) +
-  ggtitle('Number of Different Bacteria Species per Animal') +
-  theme_bw() +
-  theme(legend.position = 'none')
-
-gg1 <- bacteris_animal %>% 
-  filter(animal == 1) %>% 
-  group_by(species) %>% 
-  summarise(n = sum(n)) %>% 
-  mutate(n =100 * n / sum(n)) %>% 
-  ggplot(aes(x = reorder(species, n), y = n, fill = n)) +
-  geom_col() +
-  geom_label_repel(aes(label = (n) %>% round(2) %>% paste0('%')), 
-             fill = 'white',
-             size = 1.5,
-             direction = 'x') +
-  scale_fill_hp(option = 'HermioneGranger', guide = FALSE) +
-  ggtitle('Proportion of Species in Dogs') +
-  coord_flip() +
-  xlab('') +
-  ylab('(%)') +
-  theme_minimal()
-  
-gg2 <- bacteris_animal %>% 
-  filter(animal == 2) %>% 
-  group_by(species) %>% 
-  summarise(n = sum(n)) %>% 
-  mutate(n =100 * n / sum(n)) %>% 
-  ggplot(aes(x = reorder(species, n), y = n, fill = n)) +
-  geom_col() +
-  geom_label_repel(aes(label = (n) %>% round(2) %>% paste0('%')), 
-             fill = 'white',
-             size = 1.5,
-             direction = 'x') +
-  scale_fill_hp(guide = FALSE, begin = 0.2, end = 0.6, direction = -1) +
-  ggtitle('Proportion of Species in Cats') +
-  coord_flip() +
-  xlab('') +
-  ylab('(%)') +
-  theme_minimal()
-
-gg1
-gg2
-```
 
 ## Age Difference
 
