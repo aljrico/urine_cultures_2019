@@ -5,6 +5,7 @@ library(lubridate)
 library(tictoc)
 library(ggrepel)
 library(gridExtra)
+library(magrittr)
 source('cp_province.R')
 source('bootstrap_test.R')
 
@@ -26,6 +27,15 @@ simpleCap <- function(x) {
           sep="", collapse=" ") 
   }
   return(output)
+}
+
+# Identify Fungus ----------------------------------------------------------
+
+remove_fungus <- function(df){
+  fungus_list <<- c('Candida', 'Fusarium', 'Penicillum')
+  df %>% 
+    filter(!(species %in% fungus_list)) %>% 
+    return()
 }
 
 
@@ -68,7 +78,6 @@ general[, ca := ifelse(province == 'Barcelona', 'Cataluña', ca)]
 general[, ca := ifelse(province == 'A Coruña', 'Galicia', ca)]
 general[, ca := ifelse(province == 'Cantabria', 'Cantabria', ca)]
 general[, ca := ifelse(province == 'Málaga', 'Andalucía', ca)]
-
 
 
 # Seasons Infection % -----------------------------------------------------
@@ -496,3 +505,7 @@ general %>%
   ylab('(%)') +
   theme_minimal() +
   ggtitle('Cat')
+
+
+
+

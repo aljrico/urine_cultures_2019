@@ -1,0 +1,27 @@
+- Comptar bacteris q acostumen a provocar una situació de >1 especie. El top de especies de bacteris més habitual en casos de més d'una especie.
+
+- Chi-Squared a la distribució geogràfica d'espècies de bacteris.
+
+- Treure fongs. Estan a la segona pestanya de l'excel.
+
+- Taula pels gràfics del número de casos per especie de bacteri.
+
+- Aquell gràfic repetit però només amb el top 10
+
+- Seasons
+
+- Comptar el % d'infectats per estacions.
+
+- Trobat el top d'especies més habitual a diferents estacions.
+
+
+
+#######
+
+
+# Chi-Squared testing.
+- Test top vs average proportion of multispecies infection.
+- Test seasonal differences. Top season vs average on every infection.
+- Add 'Others' on last plot.
+- % of infected added on the last plot. Combined plot
+- Test % of infected on seasons.

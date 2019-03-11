@@ -15,6 +15,7 @@ library(tictoc)
 library(ggrepel)
 library(knitr)
 library(gridExtra)
+
 source('cp_province.R')
 source('bootstrap_test.R')
 
@@ -36,6 +37,15 @@ simpleCap <- function(x) {
           sep="", collapse=" ") 
   }
   return(output)
+}
+
+fungus_list <- c('Candida', 'Fusarium', 'Penicillum')
+
+remove_fungus <- function(df){
+  fungus_list <<- c('Candida', 'Fusarium', 'Penicillum')
+  df %>% 
+    filter(!(species %in% fungus_list)) %>% 
+    return()
 }
 ```
 
@@ -75,6 +85,10 @@ general[, ca := ifelse(province == 'Barcelona', 'Cataluña', ca)]
 general[, ca := ifelse(province == 'A Coruña', 'Galicia', ca)]
 general[, ca := ifelse(province == 'Cantabria', 'Cantabria', ca)]
 general[, ca := ifelse(province == 'Málaga', 'Andalucía', ca)]
+
+general <- general %>% filter(!(species1 %in% fungus_list))
+general <- general %>% filter(!(species2 %in% fungus_list))
+general <- general %>% filter(!(species3 %in% fungus_list))
 
 ```
 
@@ -212,14 +226,17 @@ sp_map <- function(level = 2){
 mymap <- sp_map(level = 2)
 
 general %>% 
-  group_by(province) %>% 
+  mutate(animal = ifelse(animal == 1, 'Dog', 'Cat')) %>% 
+  group_by(province, animal) %>% 
   summarise(n = n(),
             infected = sum(infected, na.rm = TRUE)) %>% 
-  mutate(proportion_infected = infected / n) %>% 
+  group_by(animal) %>% 
+  mutate(proportion_infected = 100 * infected / n) %>% 
   right_join(mymap) %>% 
+  na.omit() %>% 
   ggplot(aes(x= long, y = lat, group = group, alpha = proportion_infected)) +
   geom_polygon(fill = hp(option = 'Gryffindor2', n = 10)[[1]])  +
-  scale_alpha_continuous(range = c(0.25,1)) +
+  scale_alpha_continuous(range = c(0.25,1), name = '%') +
   theme_void()
 
 ```
@@ -471,6 +488,172 @@ x <- general %>% filter(animal == 2) %>%  filter(infected) %>% .$EDAD
 y <- general %>% filter(animal == 2) %>% filter(!infected) %>% .$EDAD
 
 wilcox.test(y,x)
+```
+
+
+# Multi-species infection
+
+```{r}
+multispecies_dog <- general %>% 
+  select(species1, animal, ID) %>% 
+  set_names('species', 'animal', 'id') %>% 
+  rbind(
+    general %>% 
+      select(species2, animal, ID) %>% 
+      set_names('species', 'animal', 'id')
+  ) %>% 
+  rbind(
+    general %>% 
+      select(species3, animal, ID) %>% 
+      set_names('species', 'animal', 'id')
+  ) %>% 
+  filter(animal == 1) %>% 
+  filter(species %in% top_species_dog) %>% 
+  mutate(id = as.character(id)) %>% 
+  filter(species != 0) %>% 
+  filter(species != 0) %>% 
+  filter(species != '') %>% 
+  group_by(id) %>% 
+  mutate(n_species = (n() > 1)) %>% 
+  group_by(species, n_species) %>% 
+  summarise(count = n()) %>% 
+  group_by(species) %>% 
+  mutate(prop = 100 * count / sum(count)) %>% 
+  data.table()
+
+multispecies_cat <- general %>% 
+  select(species1, animal, ID) %>% 
+  set_names('species', 'animal', 'id') %>% 
+  rbind(
+    general %>% 
+      select(species2, animal, ID) %>% 
+      set_names('species', 'animal', 'id')
+  ) %>% 
+  rbind(
+    general %>% 
+      select(species3, animal, ID) %>% 
+      set_names('species', 'animal', 'id')
+  ) %>% 
+  filter(animal == 2) %>% 
+  filter(species %in% top_species_cat) %>% 
+  mutate(id = as.character(id)) %>% 
+  filter(species != 0) %>% 
+  filter(species != 0) %>% 
+  filter(species != '') %>% 
+  group_by(id) %>% 
+  mutate(n_species = (n() > 1)) %>% 
+  group_by(species, n_species) %>% 
+  summarise(count = n()) %>% 
+  group_by(species) %>% 
+  mutate(prop = 100 * count / sum(count)) %>% 
+  data.table()
+
+multispecies_cat %>% 
+  filter(n_species) %>% 
+  ggplot(aes(x = reorder(species, -prop), y = prop)) +
+  geom_col(fill = hp(10)[[4]], colour = 'black', size = 0.25) +
+  geom_label(aes(label = prop %>% round(2) %>%  paste0(' %'))) +
+  xlab('') +
+  ylab('%') +
+  theme_bw() +
+  ggtitle('Proportion of cases in which the Species was not the only one present')
+
+multispecies_dog %>% 
+  filter(n_species) %>% 
+  ggplot(aes(x = reorder(species, -prop), y = prop)) +
+  geom_col(fill = hp(10, option = 'NewtScamander')[[8]], colour = 'black', size = 0.25) +
+  geom_label(aes(label = prop %>% round(2) %>%  paste0(' %'))) +
+  xlab('') +
+  ylab('%') +
+  theme_bw() +
+  ggtitle('Proportion of cases in which the Species was not the only one present')
+
+```
+
+
+
+# Seasonality
+
+
+## Most Common Bacteria distribued on Seasons
+```{r}
+bacteria_season <- general %>% 
+  select(species1, season, animal) %>% 
+  set_names('species', 'season', 'animal') %>% 
+  rbind(
+    general %>% 
+      select(species2, season, animal) %>% 
+      set_names('species', 'season', 'animal')
+  ) %>% 
+  rbind(
+    general %>% 
+      select(species3, season, animal) %>% 
+      set_names('species', 'season', 'animal')
+  ) %>% 
+  table() %>% 
+  as_tibble() %>% 
+  filter(species != 0) %>% 
+  filter(species != '') %>% 
+  group_by(species, animal) %>% 
+  mutate(total = sum(n)) %>% 
+  data.table()
+  
+bacteria_season %>% 
+  filter(species %in% top_species_dog) %>% 
+  filter(animal == 1) %>% 
+  filter(season != '') %>% 
+  mutate(prop = 100 * n / total) %>% 
+  na.omit() %>% 
+  mutate(season = factor(season, levels = c('I', 'P', 'V', 'O'))) %>% 
+  ggplot(aes(x = season, y = prop)) +
+  geom_col(fill = hp(10, option = 'NewtScamander')[[8]], 
+           colour = 'black', 
+           size = 0.25) +
+  geom_label(aes(label = prop %>% round(2) %>% paste0(' %')), size = 2) +
+  facet_wrap(.~species) +
+  xlab('Season') +
+  ylab('(%)') +
+  ggtitle('Bacteria Frequency across Seasons on Dogs') +
+  theme_bw()
+  
+  bacteria_season %>% 
+  filter(animal == 2) %>% 
+  filter(species %in% top_species_cat) %>% 
+  filter(season != '') %>% 
+  mutate(prop = 100 * n / total) %>% 
+  na.omit() %>% 
+  mutate(season = factor(season, levels = c('I', 'P', 'V', 'O'))) %>% 
+  ggplot(aes(x = season, y = prop)) +
+  geom_col(fill = hp(10)[[4]], 
+           colour = 'black', 
+           size = 0.25) +
+  geom_label(aes(label = prop %>% round(2) %>% paste0(' %')), size = 2) +
+  facet_wrap(.~species) +
+  xlab('Season') +
+  ylab('(%)') +
+  ggtitle('Bacteria Frequency across Seasons on Cats') +
+  theme_bw()
+  
+  
+
+```
+
+
+## Most Common Bacteria at every Season
+
+```{r}
+bacteria_season %>% 
+  filter(season != '') %>% 
+  group_by(season) %>% 
+  mutate(total = sum(n)) %>% 
+  ungroup() %>% 
+  mutate(prop = n / total) %>% 
+  group_by(season) %>% 
+  arrange(desc(prop)) %>% 
+  top_n(5, prop) %>% 
+  ggplot(aes(x = season, y = prop, fill = reorder(species, prop))) +
+  geom_col()
+  
 ```
 
 
