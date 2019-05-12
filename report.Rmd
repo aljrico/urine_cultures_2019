@@ -85,10 +85,19 @@ general[, ca := ifelse(province == 'Barcelona', 'Cataluña', ca)]
 general[, ca := ifelse(province == 'A Coruña', 'Galicia', ca)]
 general[, ca := ifelse(province == 'Cantabria', 'Cantabria', ca)]
 general[, ca := ifelse(province == 'Málaga', 'Andalucía', ca)]
+general[, province := ifelse(province == 'Balearic Islands', 'Baleares', province)]
 
-general <- general %>% filter(!(species1 %in% fungus_list))
-general <- general %>% filter(!(species2 %in% fungus_list))
-general <- general %>% filter(!(species3 %in% fungus_list))
+# general <- general %>% filter(!(species1 %in% fungus_list))
+# general <- general %>% filter(!(species2 %in% fungus_list))
+# general <- general %>% filter(!(species3 %in% fungus_list))
+
+general <- general %>% mutate(species1 = ifelse(species1 %in% fungus_list, NA, species1))
+general <- general %>% mutate(species2 = ifelse(species2 %in% fungus_list, NA, species2))
+general <- general %>% mutate(species3 = ifelse(species3 %in% fungus_list, NA, species3))
+
+general <- general %>% filter(!(species1 == 'CONTAMINACIÓN'))
+general <- general %>% filter(!(species2 == 'CONTAMINACIÓN'))
+general <- general %>% filter(!(species3 == 'CONTAMINACIÓN'))
 
 ```
 
@@ -136,7 +145,7 @@ gg1 <- general %>%
              size = 5.5,
              alpha = 0.7) +
   theme_void() +
-  scale_fill_hp_d(option = 'Gryffindor2', name = 'Infected?', labels = c('No', 'Yes'), direction = -1) +
+  scale_fill_hp_d(option = 'Gryffindor2', name = 'Culture Result', labels = c('Negative', 'Positive'), direction = -1) +
   ggtitle('Dogs') +
   theme(plot.title = element_text(hjust = 0.5))
 
@@ -155,12 +164,26 @@ gg2 <- general %>%
              size = 5,
              alpha = 0.7) +
   theme_void() +
-  scale_fill_hp_d(option = 'Gryffindor2', name = 'Infected?', labels = c('No', 'Yes'), direction = -1) +
+  scale_fill_hp_d(option = 'Gryffindor2', name = 'Culture Result', labels = c('Negative', 'Positive'), direction = -1) +
   ggtitle('Cats') +
   theme(plot.title = element_text(hjust = 0.5))
 
 
 grid.arrange(gg1,gg2, ncol = 2)
+
+
+general %>% 
+  group_by(animal, infected) %>% 
+  summarise(n = n()) %>% 
+  group_by(animal) %>% 
+  mutate(total = sum(n)) %>% 
+  filter(infected) %>% 
+  na.omit() %>% 
+  mutate(infected = n, no_infected = total - n) %>% 
+  ungroup() %>% 
+  select(infected, no_infected) %>% 
+  chisq.test()
+  
 ```
 
 ## Number of Species Bacteria Frequency
@@ -177,7 +200,7 @@ general %>%
   geom_label(aes(label = n %>% round(2) %>% paste0(' %'))) +
   xlab('N Species') +
   ylab('(%)') +
-  theme_minimal() +
+  theme_bw() +
   ggtitle('Dog')
 
 general %>% 
@@ -191,7 +214,7 @@ general %>%
   geom_label(aes(label = n %>% round(2) %>% paste0(' %'))) +
   xlab('N Species') +
   ylab('(%)') +
-  theme_minimal() +
+  theme_bw() +
   ggtitle('Cat')
 ```
 
@@ -235,7 +258,7 @@ general %>%
   right_join(mymap) %>% 
   na.omit() %>% 
   ggplot(aes(x= long, y = lat, group = group, alpha = proportion_infected)) +
-  geom_polygon(fill = hp(option = 'Gryffindor2', n = 10)[[1]])  +
+  geom_polygon(fill = hp(option = 'Gryffindor', n = 10)[[1]])  +
   scale_alpha_continuous(range = c(0.25,1), name = '%') +
   theme_void()
 
@@ -334,7 +357,7 @@ gg1 <- bacteris_animal %>%
   coord_flip() +
   xlab('') +
   ylab('(%)') +
-  theme_minimal()
+  theme_bw()
   
 gg2 <- bacteris_animal %>% 
   filter(animal == 2) %>% 
@@ -354,7 +377,7 @@ gg2 <- bacteris_animal %>%
   coord_flip() +
   xlab('') +
   ylab('(%)') +
-  theme_minimal()
+  theme_bw()
 
 gg1
 gg2
@@ -379,6 +402,29 @@ bacteris_animal <- general %>%
   as_tibble() %>% 
   filter(species != 0) %>% 
   filter(species != '')
+
+bacteris_animal %>% kable()
+
+general %>% 
+  select(species1, province, animal) %>% 
+    set_names('species', 'province', 'animal') %>% 
+    rbind(
+      general %>% 
+        select(species2, province, animal) %>% 
+        set_names('species', 'province', 'animal')
+    ) %>% 
+    rbind(
+      general %>% 
+        select(species3, province, animal) %>% 
+        set_names('species', 'province', 'animal')
+    ) %>% 
+    table() %>% 
+    as_tibble() %>% 
+    filter(species != 0) %>% 
+    filter(species != '') %>% 
+  group_by(province, animal) %>% 
+  mutate(proportion = n / sum(n)) %>% 
+  kable()
 
 bacteria_province <- general %>% 
   select(species1, province) %>% 
@@ -428,6 +474,7 @@ bacteria_province %>%
   ggplot() +
   geom_polygon(aes( x= long, y = lat, group = group, alpha = n), fill = hp(10)[[4]])  +
   theme_void() +
+  scale_alpha_continuous(range = c(0.35,1), name = '%') +
   facet_wrap(.~species) +
   ggtitle('Most Common Bacteria Distribution on Cats')
 
@@ -442,8 +489,9 @@ bacteria_province %>%
   ggplot() +
   geom_polygon(aes( x= long, y = lat, group = group, alpha = n), fill = hp(10, option = 'NewtScamander')[[8]])  +
   theme_void() +
+  scale_alpha_continuous(range = c(0.35,1), name = '%') +
   facet_wrap(.~species) +
-    ggtitle('Most Common Bacteria Distribution on Dogs')
+  ggtitle('Most Common Bacteria Distribution on Dogs')
 ```
 
 
@@ -456,18 +504,25 @@ general %>%
   ggplot(aes(x = infected, y = EDAD, fill = infected)) +
   geom_boxplot(alpha = 1, size = 0.25) +
   facet_wrap(.~animal) +
-  scale_fill_hp_d(option = 'sprout', name = 'Infected?', labels = c('No', 'Yes')) +
-  theme_minimal() +
-  xlab('Infected?') +
+  scale_fill_hp_d(option = 'sprout', name = 'Culture Result', labels = c('Negative', 'Positive')) +
+  theme_bw() +
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) +
-  ylab('Age')
+  ylab('Age (years)')
 
 general %>% 
   mutate(animal = ifelse(animal == 1, 'Dog', 'Cat')) %>% 
   filter(!is.na(animal)) %>% 
   group_by(animal, infected) %>% 
+  summarise(mean_age = mean(EDAD, na.rm = TRUE),
+            sd_age   = sd(EDAD,   na.rm = TRUE))
+
+
+general %>% 
+  mutate(animal = ifelse(animal == 1, 'Dog', 'Cat')) %>% 
+  filter(!is.na(animal)) %>% 
+  group_by(animal) %>% 
   summarise(mean_age = mean(EDAD, na.rm = TRUE),
             sd_age   = sd(EDAD,   na.rm = TRUE))
 ```
@@ -568,6 +623,17 @@ multispecies_dog %>%
   theme_bw() +
   ggtitle('Proportion of cases in which the Species was not the only one present')
 
+
+
+multispecies_cat %>% 
+  rename(multispecies = n_species) %>% 
+  mutate(animal = 'Cat') %>% 
+  kable()
+
+multispecies_dog %>% 
+  rename(multispecies = n_species) %>% 
+  mutate(animal = 'Dog') %>% 
+  kable()
 ```
 
 
@@ -597,7 +663,29 @@ bacteria_season <- general %>%
   group_by(species, animal) %>% 
   mutate(total = sum(n)) %>% 
   data.table()
-  
+
+bacteria_season_all <- general %>% 
+  select(species1, season) %>% 
+  set_names('species', 'season') %>% 
+  rbind(
+    general %>% 
+      select(species2, season) %>% 
+      set_names('species', 'season')
+  ) %>% 
+  rbind(
+    general %>% 
+      select(species3, season) %>% 
+      set_names('species', 'season')
+  ) %>% 
+  table() %>% 
+  as_tibble() %>% 
+  filter(species != 0) %>% 
+  filter(species != '') %>% 
+  group_by(species) %>% 
+  mutate(total = sum(n)) %>% 
+  data.table()  
+
+
 bacteria_season %>% 
   filter(species %in% top_species_dog) %>% 
   filter(animal == 1) %>% 
@@ -616,7 +704,7 @@ bacteria_season %>%
   ggtitle('Bacteria Frequency across Seasons on Dogs') +
   theme_bw()
   
-  bacteria_season %>% 
+bacteria_season %>% 
   filter(animal == 2) %>% 
   filter(species %in% top_species_cat) %>% 
   filter(season != '') %>% 
@@ -635,28 +723,358 @@ bacteria_season %>%
   theme_bw()
   
   
-
-```
-
-
-## Most Common Bacteria at every Season
-
-```{r}
-bacteria_season %>% 
+  
+  bacteria_season_all %>% 
+  filter(species %in% top_species_cat | species %in% top_species_dog) %>% 
   filter(season != '') %>% 
-  group_by(season) %>% 
-  mutate(total = sum(n)) %>% 
-  ungroup() %>% 
-  mutate(prop = n / total) %>% 
-  group_by(season) %>% 
-  arrange(desc(prop)) %>% 
-  top_n(5, prop) %>% 
-  ggplot(aes(x = season, y = prop, fill = reorder(species, prop))) +
-  geom_col()
+  mutate(prop = 100 * n / total) %>% 
+  na.omit() %>% 
+  mutate(season = factor(season, levels = c('I', 'P', 'V', 'O'))) %>% 
+  ggplot(aes(x = season, y = prop)) +
+  geom_col(fill = hp(10, option = 'Gryffindor2')[[8]], 
+           colour = 'black', 
+           size = 0.25) +
+  geom_label(aes(label = prop %>% round(2) %>% paste0(' %')), size = 2) +
+  facet_wrap(.~species) +
+  xlab('Season') +
+  ylab('(%)') +
+  ggtitle('Bacteria Frequency across Seasons on All Animals') +
+  theme_bw()
+  
   
 ```
 
+### Testing Specific Cases
+
+*Dogs: Enterococcus*
+
+```{r}
+bacteria_season %>% 
+  filter(animal == 1) %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Enterococcus') %>% 
+  mutate(this_season = season == 'V') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*Dogs: Escherichia*
+
+```{r}
+bacteria_season %>% 
+  filter(animal == 1) %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Escherichia') %>% 
+  mutate(this_season = season == 'P') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*Dogs: Proteus*
+
+```{r}
+bacteria_season %>% 
+  filter(animal == 1) %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Proteus') %>% 
+  mutate(this_season = season == 'P') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*Dogs: Staphylococcus*
+
+```{r}
+bacteria_season %>% 
+  filter(animal == 1) %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Staphylococcus') %>% 
+  mutate(this_season = season == 'V') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*Dogs: Streptococcus*
+
+```{r}
+bacteria_season %>% 
+  filter(animal == 1) %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Streptococcus') %>% 
+  mutate(this_season = season == 'P') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*Cats: Enterococcus (V)*
+
+```{r}
+bacteria_season %>% 
+  filter(animal == 2) %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Enterococcus') %>% 
+  mutate(this_season = season == 'V') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*Cats: Escherichia (V)*
+
+```{r}
+bacteria_season %>% 
+  filter(animal == 2) %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Escherichia') %>% 
+  mutate(this_season = season == 'V') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*Cats: Proteus (O)*
+
+```{r}
+bacteria_season %>% 
+  filter(animal == 2) %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Proteus') %>% 
+  mutate(this_season = season == 'O') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*Cats: Proteus (V)*
+
+```{r}
+bacteria_season %>% 
+  filter(animal == 2) %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Proteus') %>% 
+  mutate(this_season = season == 'V') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*Cats: Pseudomonas (O)*
+
+```{r}
+bacteria_season %>% 
+  filter(animal == 2) %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Pseudomonas') %>% 
+  mutate(this_season = season == 'O') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*Cats: Proteus (P)*
+
+```{r}
+bacteria_season %>% 
+  filter(animal == 2) %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Proteus') %>% 
+  mutate(this_season = season == 'P') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+
+*Cats: Staphylococcus (O)*
+
+```{r}
+bacteria_season %>% 
+  filter(animal == 2) %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Staphylococcus') %>% 
+  mutate(this_season = season == 'I') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+
+*All: Enterococcus (V)*
+
+```{r}
+bacteria_season %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Enterococcus') %>% 
+  mutate(this_season = season == 'V') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*All: Escherichia (P)*
+
+```{r}
+bacteria_season %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Escherichia') %>% 
+  mutate(this_season = season == 'P') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*All: Proteus (P)*
+
+```{r}
+bacteria_season %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Proteus') %>% 
+  mutate(this_season = season == 'P') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*All: Pseudomonas (O)*
+
+```{r}
+bacteria_season %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Pseudomonas') %>% 
+  mutate(this_season = season == 'O') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*All: Pseudomonas (I)*
+
+```{r}
+bacteria_season %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Pseudomonas') %>% 
+  mutate(this_season = season == 'I') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+*All: Staphylococcus (V)*
+
+```{r}
+bacteria_season %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Staphylococcus') %>% 
+  mutate(this_season = season == 'V') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
+
+
+*All: Streptococcus (V)*
+
+```{r}
+bacteria_season %>% 
+  mutate(not_this = total - n) %>% 
+  filter(season != '') %>% 
+  filter(species == 'Streptococcus') %>% 
+  mutate(this_season = season == 'P') %>% 
+  group_by(this_season) %>% 
+  summarise(n = sum(n), not_this = sum(not_this)) %>% 
+  chisq.test()
+```
 
 
 
+
+
+# % Positives by Season
+
+```{r}
+general %>% 
+  filter(season != '') %>% 
+  group_by(season, animal) %>% 
+  summarise(count = sum(infected),
+            proportion = mean(infected)) %>% 
+  filter(animal == 2) %>% 
+  ggplot(aes(x = season, y = 100 * proportion)) +
+  geom_col(fill = hp(10)[[4]], colour = 'black', size = 0.25)  +
+  geom_label(aes(label = (proportion*100) %>% round(2) %>% paste0(' %')), fill = 'white') +
+  xlab('Season') +
+  ylab('(%)') +
+  theme_bw() +
+  ggtitle('% of Positive Cultures per Season on Cats')
+
+general %>% 
+  filter(season != '') %>% 
+  group_by(season, animal) %>% 
+  summarise(count = sum(infected),
+            proportion = mean(infected)) %>% 
+  filter(animal == 1) %>% 
+  ggplot(aes(x = season, y = 100 * proportion)) +
+  geom_col(fill = hp(10, option = 'NewtScamander')[[8]], colour = 'black', size = 0.25)  +
+  geom_label(aes(label = (proportion*100) %>% round(2) %>% paste0(' %')), fill = 'white') +
+  xlab('Season') +
+  ylab('(%)') +
+  theme_bw() +
+  ggtitle('% of Positive Cultures per Season on Dogs')
+```
+
+
+
+```{r}
+to_test_season <- general %>% 
+  filter(season != '') %>% 
+  group_by(season, animal) %>% 
+  summarise(count = sum(infected)) %>% 
+  group_by(animal) %>% 
+  mutate(total = sum(count)) %>% 
+  ungroup() %>% 
+  mutate(no_infected = total - count) %>% 
+  mutate(infected = count)
+
+
+
+to_test_season %>% 
+  filter(animal == 1) %>% 
+  select(infected, no_infected, season) %>% 
+  mutate(is_summer = season == 'V') %>% 
+  group_by(is_summer) %>% 
+  summarise(infected = sum(infected),
+            no_infected = sum(no_infected)) %>% 
+  chisq.test()
+
+to_test_season %>% 
+  filter(animal == 2) %>% 
+  select(infected, no_infected, season) %>% 
+  mutate(is_summer = season == 'V') %>% 
+  group_by(is_summer) %>% 
+  summarise(infected = sum(infected),
+            no_infected = sum(no_infected)) %>% 
+  chisq.test()
+```
 
